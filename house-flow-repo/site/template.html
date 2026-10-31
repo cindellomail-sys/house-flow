@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>집값흐름 | 전국 아파트 실거래 흐름</title>
+<meta name="description" content="전국 아파트 실거래가 흐름을 시도, 구, 동, 단지 순서로 한눈에 봐요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --bg:#FFFFFF; --ink:#15202B; --ink2:#34414B; --muted:#5E6B74; --faint:#8A949B;
+  --line:#E8ECEE; --line2:#EEF1F3; --band:#F3F5F6; --tint:#F3F7F6;
+  --brand:#0E5A4E; --brand-ink:#0A463D;
+  --up:#C8302A; --up-bg:#FDECEA; --down:#1D58C4; --down-bg:#EAF0FC; --flat-bg:#F2F4F5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:var(--brand);text-decoration:none}
+a:hover{color:var(--brand-ink)}
+button{font:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:6px}
+.wrap{max-width:560px;margin:0 auto;min-height:100vh;background:var(--bg)}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;height:56px;padding:0 12px;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.logo{padding:0 8px;font-size:18px;font-weight:700;color:var(--brand);letter-spacing:-.02em}
+.back{display:flex;align-items:center;gap:4px;min-height:44px;padding:0 8px;font-size:15px;font-weight:600}
+.asof{margin-left:auto;padding-right:8px;font-size:13px;color:var(--muted)}
+.hero{padding:24px 20px 12px}
+.hero h1{margin:0 0 6px;font-size:30px;font-weight:700;letter-spacing:-.03em;line-height:1.25}
+.hero h1.big{font-size:28px}
+.hero p{margin:0;font-size:15px;color:var(--ink2)}
+.up{color:var(--up)} .down{color:var(--down)}
+.chips{display:flex;gap:8px;padding:8px 20px 14px;flex-wrap:wrap}
+.chip{min-height:36px;padding:0 14px;border-radius:999px;border:1px solid #D5DBDF;background:#fff;color:var(--ink2);font-size:14px;font-weight:600;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.cols,.row{display:grid;grid-template-columns:78px minmax(0,1fr) 80px 70px;gap:10px;align-items:center;padding:0 20px}
+.cols{padding-top:8px;padding-bottom:8px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cols span:nth-child(n+3){text-align:right}
+.row{min-height:62px;border-bottom:1px solid var(--line2);color:var(--ink)}
+a.row:hover{background:#FAFBFB;color:var(--ink)}
+.nm{display:flex;flex-direction:column;min-width:0}
+.nm b{font-size:16px;font-weight:600;overflow-wrap:anywhere;line-height:1.3}
+.nm small,.sub{font-size:12px;color:var(--muted)}
+.price{text-align:right;font-size:15px;font-weight:600;white-space:nowrap}
+.pricebox{display:flex;flex-direction:column;align-items:flex-end}
+.pricebox small{font-size:11px;color:var(--muted)}
+.badge{justify-self:end;padding:3px 7px;border-radius:6px;font-size:12.5px;font-weight:700;white-space:nowrap;background:var(--flat-bg);color:var(--muted)}
+.badge.up{background:var(--up-bg);color:var(--up)} .badge.down{background:var(--down-bg);color:var(--down)}
+.spark{display:block;width:100%;height:28px}
+.nospark{font-size:12px;color:var(--faint)}
+.note{margin:0;padding:18px 20px 28px;font-size:12.5px;line-height:1.65;color:var(--muted)}
+.jump{display:flex;flex-wrap:wrap;gap:6px;padding:8px 20px 14px}
+.jump button{min-height:34px;padding:0 12px;border-radius:999px;border:1px solid #D5DBDF;background:#fff;font-size:13px;font-weight:500;color:var(--ink2);cursor:pointer}
+.apt{border-top:8px solid var(--band);padding-bottom:14px;scroll-margin-top:60px}
+.apt h2{margin:0;padding:20px 20px 4px;font-size:19px;font-weight:700;letter-spacing:-.02em;line-height:1.35}
+.apt .row{border-bottom:none;min-height:48px}
+.grp{padding:8px 20px 2px}
+.grp .row{background:var(--tint);border-radius:10px;padding:0 10px;min-height:54px}
+.grp .row b{color:var(--brand)}
+.grp .nm small{white-space:nowrap;font-size:11px}
+.tr{display:grid;grid-template-columns:72px 44px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:40px;padding:0 10px;border-bottom:1px solid #F0F2F4;font-size:14px;color:var(--ink2)}
+.tr .ar{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.tr .pr{text-align:right;font-size:15px;font-weight:700;color:var(--ink)}
+.tr.cx .pr{font-weight:500;color:var(--faint);text-decoration:line-through}
+.tag{font-size:11px;font-weight:600;padding:1px 6px;border-radius:5px;background:var(--flat-bg);color:var(--muted)}
+.alert{margin:6px 0 2px;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.5;font-weight:500}
+.alert.up{background:var(--up-bg);color:#8E1F1A} .alert.down{background:var(--down-bg);color:#153F8F}
+.alert b{font-weight:700}
+.tr.hot{background:#FFFBEA}
+.tag.new{background:#15202B;color:#fff}
+.jump .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+.jump .dot.up{background:var(--up)} .jump .dot.down{background:var(--down)}
+.trend{margin:4px 20px 12px;padding:16px 14px 12px;border:1px solid var(--line);border-radius:16px}
+.trend h2{margin:0;font-size:16px;font-weight:700}
+.trend .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.trend .hd span{font-size:12px;color:var(--muted)}
+.trend svg{display:block;width:100%}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--ink2);margin:2px 0 12px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.xl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);padding-top:2px}
+.wrow{display:grid;grid-template-columns:78px minmax(0,1fr) 104px;gap:12px;align-items:center;min-height:64px;padding:6px 20px;border-bottom:1px solid var(--line2);color:var(--ink)}
+a.wrow:hover{background:#FAFBFB;color:var(--ink)}
+.wcols{display:grid;grid-template-columns:78px minmax(0,1fr) 104px;gap:12px;padding:8px 20px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.wcols span:last-child{text-align:right}
+.wk{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.wk small{font-size:11px;color:var(--muted);white-space:nowrap}
+.wrow .nm small{white-space:nowrap;font-size:11px}
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+.loading{padding:80px 20px;text-align:center;color:var(--muted);font-size:15px}
+footer{padding:8px 20px 40px;font-size:12px;line-height:1.6;color:var(--faint);border-top:1px solid var(--line)}
+@media (max-width:360px){.wcols,.wrow{grid-template-columns:70px minmax(0,1fr) 96px;gap:8px;padding-left:14px;padding-right:14px}.trend{margin-left:14px;margin-right:14px}.cols,.row{grid-template-columns:70px minmax(0,1fr) 74px 66px;gap:8px;padding:0 14px}.hero,.chips,.jump,.grp{padding-left:14px;padding-right:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top" id="top"></header>
+<main id="app" aria-live="polite"><div class="loading">실거래 자료를 불러오는 중이에요…</div></main>
+<footer id="foot"></footer>
+</div>
+<script id="snap" type="application/octet-stream">__SNAPSHOT_B64__</script>
+<script>
+/* 집값흐름: 전국 → 시도 → 시군구 → 동 → 아파트 */
+__REGIONS__
+
+const P = 3.3058;               // 1평 = 3.3058㎡
+// 사람들이 말하는 평수(24평·34평)는 공급면적 기준. 실거래 API엔 전용면적만 있어서
+// 전용률 75%로 환산: 공급 = 전용 × 4/3  (전용 59㎡ → 24평, 84㎡ → 34평)
+const SUP = 4 / 3;
+const pyeong = (area) => Math.round(area * SUP / P);
+const W = 7, MON = 30;          // 주·월(30일) 단위
+let DB = null, TODAY = 0, BASE = null;
+const cache = new Map();         // lawd → 거래 배열
+const sortState = {};            // 페이지별 정렬
+const scrollMemo = {};           // 뒤로가기 시 스크롤 복원
+
+/* ---------- 유틸 ---------- */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const man = (v) => Math.round(v).toLocaleString('ko-KR') + '만';
+/* 거래가: 1억 이상은 20.3억처럼 소수 한 자리, 1억 미만은 8,500만 */
+function won(m){ m = Math.round(m);
+  if (m < 10000) return `${m.toLocaleString('ko-KR')}만`;
+  const e = Math.round(m / 1000) / 10;
+  return `${Number.isInteger(e) ? e : e.toFixed(1)}억`; }
+const dir = (c) => c === null ? '' : c > 0.05 ? 'up' : c < -0.05 ? 'down' : '';
+const chgTxt = (c) => (c > 0 ? '+' : '') + c.toFixed(1) + '%';
+function dateOf(d){ const t = new Date(BASE.getTime() + d * 864e5);
+  return `${String(t.getUTCFullYear()).slice(2)}.${String(t.getUTCMonth()+1).padStart(2,'0')}.${String(t.getUTCDate()).padStart(2,'0')}`; }
+const sidoOf = (lawd) => Object.keys(REGIONS).find((k) => REGIONS[k].some(([, c]) => c === lawd));
+const nameOf = (lawd) => { const s = sidoOf(lawd); return s ? REGIONS[s].find(([, c]) => c === lawd)[0] : lawd; };
+
+/* 추이선: 마지막 dashN개 점 구간은 신고가 덜 들어온 기간이라 점선 */
+function spark(vals, dashN = 3){
+  const pts = vals.map((v, i) => [i, v]).filter((p) => p[1] != null);
+  if (pts.length < 2) return '<span class="nospark">추이 부족</span>';
+  const ys = pts.map((p) => p[1]), lo = Math.min(...ys), hi = Math.max(...ys), rg = (hi - lo) || 1;
+  const xy = ([i, y]) => `${(i / (vals.length - 1) * 90).toFixed(1)},${(2 + (1 - (y - lo) / rg) * 24).toFixed(1)}`;
+  const cut = vals.length - dashN;
+  const solid = pts.filter(([i]) => i <= cut), dash = pts.filter(([i]) => i >= cut);
+  // 실선 마지막 점과 점선 첫 점을 이어 끊김 없이
+  if (solid.length && dash.length && solid[solid.length - 1][0] !== dash[0][0]) dash.unshift(solid[solid.length - 1]);
+  const line = (l, extra) => l.length >= 2 ? `<polyline points="${l.map(xy).join(' ')}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"${extra}/>` : '';
+  return `<svg class="spark" viewBox="0 0 90 28" preserveAspectRatio="none" aria-hidden="true">${line(solid, '')}${line(dash, ' stroke-dasharray="3 3" opacity="0.8"')}</svg>`;
+}
+function badge(c, few){ return c === null ? `<span class="badge">${few}</span>` : `<span class="badge ${dir(c)}">${chgTxt(c)}</span>`; }
+const sparkColor = (c) => c === null ? 'var(--faint)' : c > 0.05 ? 'var(--up)' : c < -0.05 ? 'var(--down)' : 'var(--faint)';
+
+/* ---------- 데이터 ---------- */
+async function loadDB(){
+  const b64 = $('#snap').textContent.trim();
+  const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  if (!('DecompressionStream' in window)) throw new Error('이 브라우저는 너무 오래돼 자료를 열 수 없어요. 최신 브라우저로 열어 주세요.');
+  const text = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+  DB = JSON.parse(text);
+  const [y, m, d] = DB.base.split('-').map(Number); BASE = new Date(Date.UTC(y, m - 1, d));
+  const [ty, tm, td] = DB.at.split('-').map(Number); TODAY = Math.round((Date.UTC(ty, tm - 1, td) - BASE.getTime()) / 864e5);
+}
+function trades(lawd){
+  if (cache.has(lawd)) return cache.get(lawd);
+  const r = DB.d[lawd], out = [];
+  if (r) for (let i = 0; i < r.t.length; i += 6){
+    const [name, dong, built] = r.a[r.t[i]];
+    out.push({ apt: r.t[i], name, dong, built, area: r.t[i+1] / 100, price: r.t[i+2], d: r.t[i+3],
+      ago: TODAY - r.t[i+3], floor: r.t[i+4], cx: !!(r.t[i+5] & 1), dr: !!(r.t[i+5] & 2) });
+  }
+  cache.set(lawd, out); return out;
+}
+const median = (a) => { const b = a.slice().sort((x, y) => x - y), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+const ppp = (t) => t.price / (t.area * SUP / P);   // 공급면적 1평당 가격(만원)
+
+/* 주 단위(12주) 흐름: 시도·시군구 */
+const weekCache = new Map();
+function weekly(lawd){
+  if (weekCache.has(lawd)) return weekCache.get(lawd);
+  const s = new Array(15).fill(0), n = new Array(15).fill(0);
+  for (const t of trades(lawd)){ if (t.cx) continue; const w = Math.floor(t.ago / W); if (w >= 0 && w < 15){ s[w] += ppp(t); n[w]++; } }
+  const v = { s, n }; weekCache.set(lawd, v); return v;
+}
+function weekFlow(codes, min){
+  const s = new Array(15).fill(0), n = new Array(15).fill(0);
+  for (const c of codes){ const w = weekly(c); for (let i = 0; i < 15; i++){ s[i] += w.s[i]; n[i] += w.n[i]; } }
+  const sum = (a, b) => { let ss = 0, nn = 0; for (let i = a; i <= b; i++){ ss += s[i]; nn += n[i]; } return { v: nn ? ss / nn : null, n: nn }; };
+  const now = sum(0, 3), prev = sum(4, 7);
+  return { n: now.n, val: now.v, chg: now.n >= min && prev.n >= min ? (now.v - prev.v) / prev.v * 100 : null,
+    spark: Array.from({ length: 12 }, (_, i) => sum(i, i + 3).v).reverse() };  // 4주 이동평균, 과거→최근
+}
+/* 30일 단위(6개월) 흐름: 동·단지·평형 */
+function monthFlow(list, f, min){
+  const ok = list.filter((t) => !t.cx && t.ago >= 0 && t.ago < 180);
+  const sp = [90, 75, 60, 45, 30, 15, 0].map((end) => { const l = ok.filter((t) => t.ago >= end && t.ago < end + 90); return l.length ? l.reduce((a, t) => a + f(t), 0) / l.length : null; });
+  const a = ok.filter((t) => t.ago < 90), b = ok.filter((t) => t.ago >= 90);
+  const av = (l) => l.length ? l.reduce((x, t) => x + f(t), 0) / l.length : null;
+  const pa = av(a), pb = av(b);
+  return { n: ok.length, recent: pa, all: av(ok), spark: sp, chg: a.length >= min && b.length >= min ? (pa - pb) / pb * 100 : null };
+}
+
+/* ---------- 공통 조각 ---------- */
+function topBar(back){
+  $('#top').innerHTML = (back
+    ? `<a class="back" href="${back.href}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>${esc(back.label)}</a>`
+    : `<a class="logo" href="#/">집값흐름</a>`) + `<span class="asof">${asOf()}</span>`;
+}
+const asOf = () => { const [, m, d] = DB.at.split('-').map(Number); return `${m}월 ${d}일 기준`; };
+function sortChips(key){
+  const cur = sortState[key] || 'name';
+  return `<div class="chips" role="group" aria-label="정렬">${[['name','가나다순'],['up','많이 오른 순'],['n','거래 많은 순']]
+    .map(([k, l]) => `<button type="button" class="chip" data-sort="${k}" data-key="${esc(key)}" aria-pressed="${cur === k}">${l}</button>`).join('')}</div>`;
+}
+function sortRows(rows, key){
+  const k = sortState[key] || 'name', a = rows.slice();
+  if (k === 'name') a.sort((x, y) => x.name.localeCompare(y.name, 'ko'));
+  if (k === 'up') a.sort((x, y) => (y.chg ?? -1e9) - (x.chg ?? -1e9));
+  if (k === 'n') a.sort((x, y) => y.n - x.n);
+  return a;
+}
+function flowRow({ href, name, sub, val, valSub, chg, spark: sp, few }){
+  const tag = href ? 'a' : 'div';
+  return `<${tag} class="row"${href ? ` href="${href}"` : ''}>
+    <span class="nm"><b>${esc(name)}</b>${sub ? `<small>${esc(sub)}</small>` : ''}</span>
+    <span style="color:${sparkColor(chg)}">${spark(sp)}</span>
+    ${valSub ? `<span class="pricebox"><span class="price">${val}</span><small>${esc(valSub)}</small></span>` : `<span class="price">${val}</span>`}
+    ${badge(chg, few)}
+  </${tag}>`;
+}
+const upDown = (rows) => ({ up: rows.filter((r) => r.chg !== null && r.chg > 0.05).length, down: rows.filter((r) => r.chg !== null && r.chg < -0.05).length });
+
+/* ---------- 화면 ① 전국 ---------- */
+function pageHome(){
+  topBar(null);
+  const rows = Object.entries(REGIONS).map(([sido, list]) => { const W = weekDirs(list.flatMap(([, c]) => dirRecs(c))), t = W[WEEKS - 1];
+    return { name: sido, W, n: t.n, chg: t.med, t }; });
+  const all = { W: weekDirs(Object.values(REGIONS).flat().flatMap(([, c]) => dirRecs(c))) };
+  return `<section class="hero"><h1 class="big">지금 전국 아파트는<br>오르고 있을까요</h1><p>${headline(all.W, '전국')}</p></section>
+    ${trendCard(all.W)}
+    <div class="wcols"><span>지역</span><span>주별 거래 (높이 = 건수)</span><span>이번 주</span></div>
+    ${rows.map((r) => wrow(r, `#/s/${encodeURIComponent(r.name)}`)).join('')}
+    <p class="note">${NOTE_DIR} 경기·강원 등은 수록된 시군구 기준이에요.</p>`;
+}
+
+/* ---------- 주별 거래 방향 (시도·시군구 화면) ----------
+   거래마다 같은 단지·같은 평형(공급 1평 이내)의 직전 거래 최근 3건(6개월 안) 중간값과 비교.
+   2% 넘게 비싸면 '올랐어요', 싸면 '내렸어요', 그 사이는 '비슷해요'. 해제·직거래는 제외. */
+const WEEKS = 12, FLAT = 2;
+const dirCache = new Map();
+function dirRecs(lawd){
+  if (dirCache.has(lawd)) return dirCache.get(lawd);
+  const byApt = new Map();
+  for (const t of trades(lawd)){ if (t.cx || t.dr) continue; if (!byApt.has(t.apt)) byApt.set(t.apt, []); byApt.get(t.apt).push(t); }
+  const out = [];
+  for (const l of byApt.values()){
+    const areas = [...new Set(l.map((t) => t.area))].sort((a, b) => a - b), grp = new Map(); let cur = null;
+    for (const a of areas){ if (cur === null || (a - cur) * SUP > P) cur = a; grp.set(a, cur); }
+    // 평형별로 최근 거래부터 정렬해 두고, 각 거래 뒤(더 과거)에서 직전 3건을 찾음
+    const byG = new Map();
+    for (const t of l){ const g = grp.get(t.area); if (!byG.has(g)) byG.set(g, []); byG.get(g).push(t); }
+    for (const list of byG.values()){
+      list.sort((x, y) => x.ago - y.ago);
+      for (let i = 0; i < list.length; i++){
+        const t = list[i];
+        if (t.ago < 0 || t.ago >= WEEKS * 7) continue;
+        const prev = [];
+        for (let j = i + 1; j < list.length && prev.length < 3; j++){
+          const x = list[j];
+          if (x.ago >= t.ago + 180) break;
+          if (x.ago > t.ago) prev.push(x.price);        // 같은 날 거래는 비교 대상에서 제외
+        }
+        out.push({ w: Math.floor(t.ago / 7), diff: prev.length ? (t.price - median(prev)) / median(prev) * 100 : null });
+      }
+    }
+  }
+  dirCache.set(lawd, out); return out;
+}
+function weekDirs(recs){
+  return Array.from({ length: WEEKS }, (_, k) => {
+    const w = WEEKS - 1 - k, l = recs.filter((r) => r.w === w), c = l.filter((r) => r.diff !== null);
+    const up = c.filter((r) => r.diff > FLAT).length, down = c.filter((r) => r.diff < -FLAT).length;
+    return { w, n: l.length, cmp: c.length, up, down, flat: c.length - up - down, med: c.length ? median(c.map((r) => r.diff)) : null };
+  });
+}
+const pct = (v) => (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+// 막대 안에 비율 글씨가 보이도록 연한 색 사용
+const C_UP = '#F4ABA5', C_FLAT = '#DDE2E6', C_DOWN = '#A8C0EF';
+const T_UP = '#8E1F1A', T_FLAT = '#34414B', T_DOWN = '#153F8F';
+function stackRects(w, x, bw, bottom, h, labels){
+  if (!w.cmp) return '';
+  const segs = [[w.up, C_UP, T_UP], [w.flat, C_FLAT, T_FLAT], [w.down, C_DOWN, T_DOWN]];
+  let y = bottom - h, out = '';
+  for (const [n, fill, ink] of segs){
+    const sh = n / w.cmp * h;
+    out += `<rect x="${x}" y="${y.toFixed(1)}" width="${bw}" height="${sh.toFixed(1)}" fill="${fill}"/>`;
+    // 칸 높이가 글씨보다 클 때만 비율 표시
+    if (labels && sh >= 11) out += `<text x="${x + bw / 2}" y="${(y + sh / 2 + 3).toFixed(1)}" text-anchor="middle" font-size="8" font-weight="700" fill="${ink}">${Math.round(n / w.cmp * 100)}</text>`;
+    y += sh;
+  }
+  return out;
+}
+function weekLabel(w){ const t = new Date(BASE.getTime() + (TODAY - (7 * w + 6)) * 864e5); return `${t.getUTCMonth() + 1}.${String(t.getUTCDate()).padStart(2, '0')}`; }
+function trendCard(W){
+  const vmax = Math.max(1, ...W.map((w) => w.cmp));
+  const bars = W.map((w, i) => { const x = i * 26 + 2, h = w.cmp ? Math.max(2, w.cmp / vmax * 88) : 0;
+    return stackRects(w, x, 22, 110, h, true) + (w.cmp ? `<text x="${x + 11}" y="${(110 - h - 4).toFixed(1)}" text-anchor="middle" font-size="${vmax >= 1000 ? 8 : 9.5}" font-weight="700" fill="#34414B">${w.cmp}</text>` : ''); }).join('');
+  const ms = W.map((w) => w.med).filter((v) => v !== null);
+  let line = '';
+  if (ms.length >= 2){
+    const lo = Math.min(0, ...ms), hi = Math.max(0, ...ms), X = (i) => i * 26 + 13, Y = (v) => 16 + (1 - (v - lo) / ((hi - lo) || 1)) * 44;
+    const pts = W.map((w, i) => w.med === null ? null : [X(i), Y(w.med)]).filter(Boolean);
+    // 값이 아래쪽이면 점 아래에, 위쪽이면 점 위에 라벨
+    const lab = (v) => (Y(v) > 38 ? Y(v) + 15 : Y(v) - 8).toFixed(1);
+    const first = W.find((w) => w.med !== null), last = [...W].reverse().find((w) => w.med !== null);
+    const fx = X(W.indexOf(first)), lx = X(W.indexOf(last));
+    line = `<line x1="0" x2="320" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#E1E6E9" stroke-dasharray="3 3"/>
+      <polyline points="${pts.map(([x, y]) => `${x},${y.toFixed(1)}`).join(' ')}" fill="none" stroke="#15202B" stroke-width="2" stroke-linejoin="round"/>
+      ${pts.map(([x, y]) => `<circle cx="${x}" cy="${y.toFixed(1)}" r="3" fill="#15202B"/>`).join('')}
+      <text x="${Math.max(2, fx - 6)}" y="${lab(first.med)}" font-size="10.5" fill="#5E6B74">${pct(first.med)}</text>
+      <text x="${Math.min(318, lx + 6)}" y="${lab(last.med)}" text-anchor="end" font-size="10.5" font-weight="700" fill="#15202B">${pct(last.med)}</text>`;
+  }
+  const xl = [W[0], W[4], W[8], W[WEEKS - 1]].map((w) => w.w === 0 ? '이번 주' : weekLabel(w.w));
+  return `<section class="trend" aria-label="12주 거래 흐름">
+    <div class="hd"><h2>오른 거래가 많았나</h2><span>높이 = 건수, 숫자 = %</span></div>
+    <svg viewBox="0 0 320 112" height="112" role="img" aria-label="주별 거래 건수와 오른·비슷한·내린 거래 비율">${bars}</svg>
+    <div class="legend"><span><i style="background:${C_UP}"></i>올랐어요</span><span><i style="background:${C_FLAT}"></i>비슷해요</span><span><i style="background:${C_DOWN}"></i>내렸어요</span></div>
+    <div class="hd"><h2>보통 얼마나 올랐나</h2><span>직전 거래 대비</span></div>
+    <svg viewBox="0 0 320 80" height="80" role="img" aria-label="주별 중간 변동률">${line}</svg>
+    <div class="xl">${xl.map((x) => `<span>${x}</span>`).join('')}</div>
+  </section>`;
+}
+function miniBars(W){
+  const vmax = Math.max(1, ...W.map((w) => w.cmp));
+  return `<svg viewBox="-8 0 136 46" height="46" aria-hidden="true">${W.map((w, i) => { const x = i * 10 + 1.5, h = w.cmp ? Math.max(3, w.cmp / vmax * 32) : 0;
+    // 숫자가 겹치지 않게: 한 자리면 전부, 두 자리면 격주, 세 자리 이상이면 3주 간격 (이번 주는 항상)
+    const step = vmax < 10 ? 1 : vmax < 100 ? 2 : 3;
+    const show = w.cmp && (i % step === (W.length - 1) % step || i === W.length - 1);
+    return stackRects(w, x, 7, 44, h) + (show ? `<text x="${x + 3.5}" y="${(44 - h - 2).toFixed(1)}" text-anchor="middle" font-size="7.5" font-weight="600" fill="#34414B">${w.cmp}</text>` : ''); }).join('')}</svg>`;
+}
+function headline(W, place){
+  const full = W.slice(0, WEEKS - 2).filter((w) => w.cmp);
+  if (!full.length) return `${esc(place)}은 최근 비교할 거래가 적어요.`;
+  const pos = full.filter((w) => w.up > w.down).length, neg = full.filter((w) => w.down > w.up).length;
+  const ms = full.map((w) => w.med).filter((v) => v !== null), typ = ms.length ? median(ms) : 0;
+  const lead = pos === full.length ? `${full.length}주째 오른 거래가 더 많아요.`
+    : neg === full.length ? `${full.length}주째 내린 거래가 더 많아요.`
+    : `최근 ${full.length}주 중 ${pos}주는 오른 거래가, ${neg}주는 내린 거래가 더 많았어요.`;
+  const how = Math.abs(typ) <= FLAT ? '보통 직전과 비슷한 가격에 팔렸어요.' : `보통 직전보다 ${Math.abs(typ).toFixed(1)}% ${typ > 0 ? '비싸게' : '싸게'} 팔렸어요.`;
+  return `${lead} ${how} 이번 주는 아직 집계 중이에요.`;
+}
+
+function wrow(r, href){
+  const t = r.t, cls = t.med === null ? '' : t.med > FLAT ? 'up' : t.med < -FLAT ? 'down' : '';
+  return `<a class="wrow" href="${href}">
+    <span class="nm"><b>${esc(r.name)}</b><small>이번 주 ${t.n.toLocaleString('ko-KR')}건</small></span>
+    ${miniBars(r.W)}
+    <span class="wk"><span class="badge ${cls}">${t.cmp ? `${t.cmp.toLocaleString('ko-KR')}건 중 ${t.up.toLocaleString('ko-KR')}건 ↑` : t.n ? '비교 불가' : '거래 없음'}</span>${t.cmp ? `<small>오른 거래 ${Math.round(t.up / t.cmp * 100)}%</small><small>보통 ${pct(t.med)}</small>` : ''}</span>
+  </a>`;
+}
+const NOTE_DIR = "거래마다 같은 단지·같은 평형의 직전 거래(최근 3건)와 비교해요. 2% 넘게 비싸면 '올랐어요', 싸면 '내렸어요', 그 사이는 '비슷해요'예요. '이번 주'는 최근 7일 계약이에요. 최근 몇 주는 신고 기간(30일)이 남아 건수가 더 늘어날 수 있어요. 해제·직거래는 빼요.";
+
+/* ---------- 화면 ② 시도 → 시군구 ---------- */
+function pageSido(sido){
+  const list = REGIONS[sido]; if (!list) return notFound();
+  topBar({ href: '#/', label: '전국' });
+  const unit = sido === '서울' ? '구' : '시군구';
+  const rows = list.map(([name, c]) => { const W = weekDirs(dirRecs(c)), t = W[WEEKS - 1];
+    return { name, code: c, W, n: t.n, chg: t.med, t }; });
+  const all = weekDirs(list.flatMap(([, c]) => dirRecs(c)));
+  const body = sortRows(rows, 's:' + sido).map((r) => wrow(r, `#/g/${r.code}`)).join('');
+  return `<section class="hero"><h1>${esc(sido)}</h1><p>${headline(all, sido)}</p></section>
+    ${trendCard(all)}
+    ${sortChips('s:' + sido)}
+    <div class="wcols"><span>${unit}</span><span>주별 거래 (높이 = 건수)</span><span>이번 주</span></div>
+    ${body}
+    <p class="note">${NOTE_DIR}</p>`;
+}
+
+/* ---------- 화면 ③ 시군구 → 동 ---------- */
+function pageGu(lawd){
+  const sido = sidoOf(lawd); if (!sido) return notFound();
+  topBar({ href: `#/s/${encodeURIComponent(sido)}`, label: sido });
+  const T = trades(lawd);
+  const dongs = [...new Set(T.map((t) => t.dong))];
+  const rows = dongs.map((d) => { const f = monthFlow(T.filter((t) => t.dong === d), ppp, 5); return { name: d, ...f }; }).filter((r) => r.n > 0);
+  const { up, down } = upDown(rows);
+  const body = rows.length ? sortRows(rows, 'g:' + lawd).map((r) => flowRow({ href: `#/d/${lawd}/${encodeURIComponent(r.name)}`, name: r.name, sub: r.n + '건',
+      val: r.recent ? man(r.recent) : (r.all ? man(r.all) : '-'), chg: r.chg, spark: r.spark, few: '거래 적음' })).join('')
+    : `<div class="empty">최근 6개월 거래가 없어요.</div>`;
+  return `<section class="hero"><h1>${esc(nameOf(lawd))}</h1><p>${rows.length}개 동 중 <b class="up">${up}곳 상승</b>, <b class="down">${down}곳 하락</b>했어요.</p></section>
+    ${sortChips('g:' + lawd)}
+    <div class="cols"><span>동</span><span>6개월 추이</span><span>평당가</span><span>3개월 변동</span></div>
+    ${body}
+    <p class="note">동 단위는 거래가 적어 3개월 평균으로 봐요. 추이선은 15일 간격의 3개월 평균이라 첫 점은 직전 3개월, 마지막 점은 최근 3개월이에요. 점선은 신고가 덜 들어온 최근 30일이에요. 변동은 두 기간 비교예요. 두 기간 모두 5건 이상일 때만 변동을 보여줘요. 평당가는 최근 3개월 기준이에요.</p>`;
+}
+
+/* ---------- 화면 ④ 동 → 아파트 (단지·평형별 흐름 + 거래) ---------- */
+function groupAreas(list){
+  const areas = [...new Set(list.map((t) => t.area))].sort((a, b) => a - b), g = [];
+  let cur = null;
+  for (const a of areas){ if (!cur || (a - cur.min) * SUP > P){ cur = { min: a, max: a }; g.push(cur); } else cur.max = a; }
+  return g.map((x) => ({ ...x, tr: list.filter((t) => t.area >= x.min && t.area <= x.max).sort((p, q) => q.d - p.d || q.price - p.price) }));
+}
+/* 최근 1주 급등·급락: 평형별 마지막(최신) 거래가 최근 7일 안이고,
+   같은 평형 직전 거래 최근 3건(2건 이상, 6개월 안) 중간값보다 10% 이상 높거나 낮으면 표시 */
+const JUMP = 10, RECENT = 7;
+
+function jumpOf(tr){
+  const ok = tr.filter((t) => !t.cx);            // 이미 최신순 정렬
+  if (!ok.length || ok[0].ago >= RECENT || ok[0].dr) return null;   // 직거래는 판단에서 제외
+  const prev = ok.slice(1).filter((t) => !t.dr && t.ago < ok[0].ago + 180).slice(0, 3).map((t) => t.price);
+  if (prev.length < 2) return null;
+  const base = median(prev), diff = (ok[0].price - base) / base * 100;
+  if (Math.abs(diff) < JUMP) return null;
+  return { t: ok[0], base, diff, dir: diff > 0 ? 'up' : 'down', n: prev.length };
+}
+
+function pageDong(lawd, dong){
+  const sido = sidoOf(lawd); if (!sido) return notFound();
+  topBar({ href: `#/g/${lawd}`, label: nameOf(lawd) });
+  const T = trades(lawd).filter((t) => t.dong === dong && t.ago < 180);
+  const byApt = new Map();
+  for (const t of T){ if (!byApt.has(t.apt)) byApt.set(t.apt, []); byApt.get(t.apt).push(t); }
+  const apts = [...byApt.values()].map((l) => {
+    const groups = groupAreas(l).map((g) => ({ ...g, f: monthFlow(g.tr, (t) => t.price, 2), jump: jumpOf(g.tr) }));
+    // 단지 흐름: 평형 구성 차이를 없애려고 평형별 가격을 자기 평균 대비 비율로 바꿔 합침
+    const all = monthFlow(l, ppp, 999);
+    const idx = [0,1,2,3,4,5,6].map((i) => { const r = groups.filter((g) => g.f.spark[i] && g.f.all).map((g) => g.f.spark[i] / g.f.all); return r.length && all.all ? r.reduce((a, b) => a + b, 0) / r.length * all.all : null; });
+    const cg = groups.filter((g) => g.f.chg !== null), w = cg.reduce((s, g) => s + g.f.n, 0);
+    const jumps = groups.filter((g) => g.jump).map((g) => g.jump.dir);
+    return { name: l[0].name, built: l[0].built, n: l.length, val: all.all, spark: idx, chg: w ? cg.reduce((s, g) => s + g.f.chg * g.f.n, 0) / w : null, groups, jumpDir: jumps.includes('up') ? 'up' : jumps.includes('down') ? 'down' : null };
+  }).sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  if (!apts.length) return `<section class="hero"><h1>${esc(dong)}</h1></section><div class="empty">최근 6개월 거래가 없어요.</div>`;
+  const total = apts.reduce((s, a) => s + a.n, 0);
+  const all = apts.flatMap((a) => a.groups.filter((g) => g.jump).map((g) => g.jump.dir));
+  const ups = all.filter((d) => d === 'up').length, downs = all.length - ups;
+  const jumpLine = all.length ? `<p style="margin-top:6px">최근 1주 <b class="up">급등 ${ups}건</b>, <b class="down">급락 ${downs}건</b>이 있어요. 칩의 점으로 찾을 수 있어요.</p>` : '';
+  const html = apts.map((a, i) => `<section class="apt" id="apt-${i}">
+    <h2>${esc(a.name)}</h2>
+    ${flowRow({ name: a.built ? a.built + '년 준공' : '준공연도 미상', sub: a.n + '건', val: a.val ? man(a.val) : '-', valSub: '평당', chg: a.chg, spark: a.spark, few: '거래 적음' }).replace('<b>', '<b style="font-size:12px;font-weight:400;color:var(--muted)">')}
+    ${a.groups.map((g) => { const py = pyeong((g.min + g.max) / 2);
+      const area = g.min === g.max ? `전용 ${g.min.toFixed(1)}㎡` : `전용 ${g.min.toFixed(1)}~${g.max.toFixed(1)}`;
+      const j = g.jump;
+      const alert = j ? `<div class="alert ${j.dir}" role="note"><b>최근 1주 ${j.dir === 'up' ? '급등' : '급락'} ${j.diff > 0 ? '+' : ''}${j.diff.toFixed(1)}%</b><br>${dateOf(j.t.d)} ${j.t.floor}층 ${won(j.t.price)}. 직전 ${j.n}건 중간값 ${won(j.base)}보다 ${j.dir === 'up' ? '높아요' : '낮아요'}.</div>` : '';
+      return `<div class="grp">${flowRow({ name: py + '평', sub: area, val: g.f.all ? won(g.f.all) : '-', valSub: `평균, ${g.f.n}건`, chg: g.f.chg, spark: g.f.spark, few: '거래 적음' })}
+        ${alert}
+        ${g.tr.map((t) => { const hot = j && t === j.t;
+          return `<div class="tr${t.cx ? ' cx' : ''}${hot ? ' hot' : ''}"><span>${dateOf(t.d)}</span><span>${t.floor}층</span><span class="ar">${t.area.toFixed(2)}㎡${t.cx ? '<span class="tag">해제</span>' : ''}${hot ? '<span class="tag new">새 거래</span>' : ''}</span><span class="pr">${won(t.price)}</span></div>`; }).join('')}</div>`; }).join('')}
+  </section>`).join('');
+  return `<section class="hero"><h1>${esc(dong)}</h1><p>최근 6개월 거래가 있는 단지 ${apts.length}곳, ${total}건이에요. 가나다순이에요.</p>${jumpLine}</section>
+    <nav class="jump" aria-label="단지 바로가기">${apts.map((a, i) => `<button type="button" data-jump="apt-${i}">${a.jumpDir ? `<span class="dot ${a.jumpDir}" aria-label="최근 1주 ${a.jumpDir === 'up' ? '급등' : '급락'}"></span>` : ''}${esc(a.name)}</button>`).join('')}</nav>
+    <p class="note" style="padding-top:0;padding-bottom:16px">추이선은 15일 간격의 3개월 평균(첫 점 직전 3개월, 마지막 점 최근 3개월)이고, 점선은 신고가 덜 들어온 최근 30일이에요.</p>
+    ${html}
+    <p class="note">평형은 흔히 부르는 공급면적 평수로, 전용면적을 전용률 75%로 환산했어요(전용 59㎡ → 24평, 84㎡ → 34평). 단지마다 실제 평형과 1평 안팎 다를 수 있어요. 1평 이하 차이는 한 평형으로 묶었어요. 단지 추이·변동은 평형 구성 차이를 보정한 값이에요. 해제된 거래는 통계에서 빼요. 급등·급락은 평형별 최신 거래가 최근 7일(계약일 기준) 안이고, 같은 평형 직전 거래(최근 3건) 중간값보다 10% 이상 차이 날 때 표시해요. 층·향에 따른 차이도 섞일 수 있어요.</p>`;
+}
+
+function notFound(){ topBar({ href: '#/', label: '전국' }); return `<div class="empty">찾는 지역이 없어요.</div>`; }
+
+/* ---------- 라우터 ---------- */
+let curHash = '';
+function route(){
+  const h = location.hash || '#/';
+  const [, kind, a, b] = h.split('/').map((x) => x && decodeURIComponent(x));
+  let html;
+  if (!kind) html = pageHome();
+  else if (kind === 's') html = pageSido(a);
+  else if (kind === 'g') html = pageGu(a);
+  else if (kind === 'd') html = pageDong(a, b);
+  else html = notFound();
+  $('#app').innerHTML = html;
+  const title = !kind ? '전국' : kind === 's' ? a : kind === 'g' ? nameOf(a) : b;
+  document.title = `${title} | 집값흐름`;
+  curHash = h;
+  requestAnimationFrame(() => window.scrollTo(0, scrollMemo[h] || 0));
+}
+window.addEventListener('scroll', () => { if (curHash) scrollMemo[curHash] = window.scrollY; }, { passive: true });
+window.addEventListener('hashchange', route);
+document.addEventListener('click', (e) => {
+  const s = e.target.closest('[data-sort]');
+  if (s){ sortState[s.dataset.key] = s.dataset.sort; const y = window.scrollY; route(); window.scrollTo(0, y); return; }
+  const j = e.target.closest('[data-jump]');
+  if (j){ document.getElementById(j.dataset.jump)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+});
+
+(async () => {
+  try {
+    await loadDB();
+    $('#foot').innerHTML = `자료: 국토교통부 아파트 매매 실거래가(공공데이터포털). 호가가 아닌 신고된 실거래 기준이에요. ${esc(DB.at)} 수집본이에요.`;
+    route();
+  } catch (e) {
+    $('#app').innerHTML = `<div class="empty">${esc(e.message || '자료를 불러오지 못했어요.')}</div>`;
+  }
+})();
+</script>
+</body>
+</html>
