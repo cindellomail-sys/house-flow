@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>집값흐름 | 최근 시장 변화부터 내 아파트까지</title>
+<meta name="description" content="전국에서 동네와 아파트까지, 최근 1주와 4주의 집값 흐름을 확인하세요.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F1F4F3; --surface:#FFFFFF; --ink:#16212B; --muted:#5B6972; --line:#D9E0DD;
+  --brand:#0E5A4E; --brand-soft:#DCEBE7; --up:#CF2F2A; --down:#1F57C6;
+  --radius-lg:18px; --radius-sm:10px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F161B; --surface:#172128; --ink:#E4EBEE; --muted:#93A1AA; --line:#28353D;
+    --brand:#4DB39E; --brand-soft:#1C3632; --up:#FF6A62; --down:#6E9DFF; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F161B; --surface:#172128; --ink:#E4EBEE; --muted:#93A1AA; --line:#28353D;
+  --brand:#4DB39E; --brand-soft:#1C3632; --up:#FF6A62; --down:#6E9DFF; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans KR","Pretendard","Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  font-size:15px; line-height:1.55; font-variant-numeric:tabular-nums;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+
+/* 상단 */
+.top{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:10px;padding-top:10px;padding-bottom:10px}
+.logo{font-weight:700;font-size:17px;letter-spacing:-.02em;color:var(--brand);white-space:nowrap;margin-right:auto}
+.pick{appearance:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;
+  padding:7px 28px 7px 12px;font-size:14px;font-weight:500;max-width:9.5em;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+
+.demo{background:var(--brand-soft);color:var(--brand);font-size:13px;padding:8px 16px;text-align:center}
+
+/* 지역 요약 */
+.region{padding:26px 0 8px}
+.region h1{margin:0;font-size:15px;font-weight:600;color:var(--muted)}
+.region h1 b{color:var(--ink);font-size:26px;letter-spacing:-.03em;margin-right:6px}
+.figure{display:flex;align-items:baseline;gap:6px;margin-top:14px}
+.figure .num{font-size:52px;font-weight:700;letter-spacing:-.045em;line-height:1}
+.figure .unit{font-size:16px;font-weight:600;color:var(--muted)}
+.basis{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.move{margin:14px 0 0;font-size:17px;font-weight:600}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--muted)}
+.weekline{margin-top:18px;padding:14px 16px;background:var(--surface);border-radius:var(--radius-lg);
+  display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:baseline}
+.weekline .k{font-weight:600}
+.weekline .v{color:var(--muted);font-size:14px}
+.weekline .d{font-weight:600;font-size:14px;text-align:right}
+.bars{margin-top:18px}
+.bars svg{display:block;width:100%;height:auto}
+.bars text{font-family:inherit;fill:var(--muted);font-size:11px}
+.note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+
+/* 섹션 */
+.sec{margin-top:34px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
+.sec-h h2{margin:0;font-size:19px;letter-spacing:-.02em}
+.sec-h span{font-size:12.5px;color:var(--muted)}
+.list{background:var(--surface);border-radius:var(--radius-lg);overflow:hidden}
+.row{display:grid;width:100%;text-align:left;border:0;background:none;padding:13px 16px;border-top:1px solid var(--line);align-items:center}
+.row:first-child{border-top:0}
+.row:active{background:var(--brand-soft)}
+.dong-row{grid-template-columns:1fr auto 5.6em 4.2em;gap:10px}
+.dong-row .n{font-weight:600}
+.dong-row .c,.dong-row .p{font-size:14px;color:var(--muted);text-align:right}
+.dong-row .p{color:var(--ink)}
+.dong-row .dd{font-size:13px;font-weight:600;text-align:right}
+.dong-row[aria-pressed="true"]{background:var(--brand-soft)}
+.dong-row[aria-pressed="true"] .n{color:var(--brand)}
+
+.search{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:10px}
+.filter{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px}
+.filter button{border:0;background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:5px 12px;font-weight:600}
+.apt-row{grid-template-columns:1fr auto;gap:12px}
+.apt-row .n{font-weight:600;line-height:1.35}
+.apt-row .s{font-size:13px;color:var(--muted);margin-top:2px}
+.apt-row .r{text-align:right}
+.apt-row .pr{font-weight:700}
+.more{display:block;width:100%;margin-top:10px;border:1px solid var(--line);background:none;border-radius:var(--radius-sm);padding:11px;font-weight:600;color:var(--brand)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted);font-size:14px}
+
+/* 상태 */
+.state{padding:70px 0;text-align:center;color:var(--muted)}
+.state b{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+.state button{margin-top:16px;border:0;background:var(--brand);color:#fff;border-radius:999px;padding:10px 20px;font-weight:600}
+.spinner{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--brand);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 단지 상세 */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.sheet[hidden]{display:none}
+.sheet-top{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);z-index:2}
+.sheet-top .wrap{display:flex;align-items:center;gap:8px;padding-top:10px;padding-bottom:10px}
+.back{border:0;background:none;font-weight:600;padding:6px 8px 6px 0;color:var(--brand)}
+.apt-h{padding:20px 0 4px}
+.apt-h h2{margin:0;font-size:24px;letter-spacing:-.03em;line-height:1.3}
+.apt-h p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.groups{display:flex;gap:8px;overflow-x:auto;padding:16px 0 4px;scrollbar-width:none}
+.groups::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--surface);border-radius:14px;padding:9px 14px;text-align:left;line-height:1.3}
+.chip b{display:block;font-size:16px}
+.chip span{font-size:12.5px;color:var(--muted)}
+.chip[aria-pressed="true"]{border-color:var(--brand);background:var(--brand-soft)}
+.chip[aria-pressed="true"] b{color:var(--brand)}
+.merge{font-size:13px;color:var(--muted);margin:10px 0 0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:var(--radius-lg);overflow:hidden;margin-top:14px}
+.stat{background:var(--surface);padding:13px 16px}
+.stat .k{font-size:12.5px;color:var(--muted)}
+.stat .v{font-size:19px;font-weight:700;letter-spacing:-.02em}
+.stat .s{font-size:12.5px;color:var(--muted)}
+.chart{margin-top:14px;background:var(--surface);border-radius:var(--radius-lg);padding:12px 8px 6px}
+.chart svg{display:block;width:100%;height:auto}
+.chart text{font-family:inherit;fill:var(--muted);font-size:10.5px}
+.trade{grid-template-columns:5.4em 1fr auto;gap:10px}
+.trade .dt{font-size:14px;color:var(--muted)}
+.trade .fl{font-size:14px}
+.trade .fl small{color:var(--muted);margin-left:6px}
+.trade .pr{font-weight:700;text-align:right}
+.trade.cancel .pr{text-decoration:line-through;color:var(--muted);font-weight:500}
+.tag{display:inline-block;font-size:11px;font-weight:600;border-radius:5px;padding:1px 5px;margin-left:6px;background:var(--line);color:var(--muted);vertical-align:1px}
+.foot{padding:40px 0 30px;font-size:12px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="logo">집값흐름</div>
+    <select id="sido" class="pick" aria-label="시도 선택"></select>
+    <select id="sgg" class="pick" aria-label="시군구 선택"></select>
+  </div>
+</header>
+<div id="demoBar" class="demo" hidden>데모 데이터로 보는 화면이에요. 실제 거래가 아닙니다.</div>
+<main class="wrap" id="app"></main>
+
+<div id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="aptTitle">
+  <div class="sheet-top"><div class="wrap"><button class="back" id="closeSheet">← 목록으로</button></div></div>
+  <div class="wrap" id="sheetBody"></div>
+</div>
+
+<script>
+/* ====== 지역코드 (국토부 LAWD_CD, 시군구 5자리) ======
+   2026-09-18 실제 API 호출로 전체 검증 완료.
+   - 인천: 중구(28110)·동구(28140) → 제물포구(28125)·영종구(28155),
+           서구(28260) → 서해구(28275)·검단구(28290)  [2026.7 개편]
+   - 화성시(41590) → 만세구 41591 / 효행구 41593 / 병점구 41595 / 동탄구 41597
+   - 광주(29xxx)·전남(46xxx) → 전남광주통합특별시 12xxx  [2026.7.1 통합]
+   - 강원 51xxx, 전북 52xxx 정상
+   API는 과거 거래도 새 코드로만 조회됨(옛 코드는 과거 월도 0건).
+   행정구역 개편 시 이 목록만 고치면 됩니다. */
+const REGIONS = {
+  "서울": [["강남구","11680"],["강동구","11740"],["강북구","11305"],["강서구","11500"],["관악구","11620"],["광진구","11215"],["구로구","11530"],["금천구","11545"],["노원구","11350"],["도봉구","11320"],["동대문구","11230"],["동작구","11590"],["마포구","11440"],["서대문구","11410"],["서초구","11650"],["성동구","11200"],["성북구","11290"],["송파구","11710"],["양천구","11470"],["영등포구","11560"],["용산구","11170"],["은평구","11380"],["종로구","11110"],["중구","11140"],["중랑구","11260"]],
+  "경기": [["수원 장안구","41111"],["수원 권선구","41113"],["수원 팔달구","41115"],["수원 영통구","41117"],["성남 수정구","41131"],["성남 중원구","41133"],["성남 분당구","41135"],["의정부시","41150"],["안양 만안구","41171"],["안양 동안구","41173"],["부천 원미구","41192"],["부천 소사구","41194"],["부천 오정구","41196"],["광명시","41210"],["평택시","41220"],["안산 상록구","41271"],["안산 단원구","41273"],["고양 덕양구","41281"],["고양 일산동구","41285"],["고양 일산서구","41287"],["과천시","41290"],["구리시","41310"],["남양주시","41360"],["오산시","41370"],["시흥시","41390"],["군포시","41410"],["의왕시","41430"],["하남시","41450"],["용인 처인구","41461"],["용인 기흥구","41463"],["용인 수지구","41465"],["파주시","41480"],["이천시","41500"],["안성시","41550"],["김포시","41570"],["화성 만세구","41591"],["화성 효행구","41593"],["화성 병점구","41595"],["화성 동탄구","41597"],["광주시","41610"],["양주시","41630"]],
+  "인천": [["제물포구","28125"],["영종구","28155"],["미추홀구","28177"],["연수구","28185"],["남동구","28200"],["부평구","28237"],["계양구","28245"],["서해구","28275"],["검단구","28290"]],
+  "부산": [["중구","26110"],["서구","26140"],["동구","26170"],["영도구","26200"],["부산진구","26230"],["동래구","26260"],["남구","26290"],["북구","26320"],["해운대구","26350"],["사하구","26380"],["금정구","26410"],["강서구","26440"],["연제구","26470"],["수영구","26500"],["사상구","26530"],["기장군","26710"]],
+  "대구": [["중구","27110"],["동구","27140"],["서구","27170"],["남구","27200"],["북구","27230"],["수성구","27260"],["달서구","27290"],["달성군","27710"]],
+  "대전": [["동구","30110"],["중구","30140"],["서구","30170"],["유성구","30200"],["대덕구","30230"]],
+  "울산": [["중구","31110"],["남구","31140"],["동구","31170"],["북구","31200"],["울주군","31710"]],
+  "세종": [["세종시","36110"]],
+  "강원": [["춘천시","51110"],["원주시","51130"],["강릉시","51150"]],
+  "충북": [["청주 상당구","43111"],["청주 서원구","43112"],["청주 흥덕구","43113"],["청주 청원구","43114"]],
+  "충남": [["천안 동남구","44131"],["천안 서북구","44133"],["아산시","44200"]],
+  "전북": [["전주 완산구","52111"],["전주 덕진구","52113"]],
+  "전남광주": [["광주 동구","12210"],["광주 서구","12240"],["광주 남구","12270"],["광주 북구","12300"],["광주 광산구","12330"],["목포시","12110"],["여수시","12130"],["순천시","12150"],["나주시","12170"],["광양시","12190"]],
+  "경북": [["포항 남구","47111"],["포항 북구","47113"],["구미시","47190"]],
+  "경남": [["창원 의창구","48121"],["창원 성산구","48123"],["창원 마산합포구","48125"],["창원 마산회원구","48127"],["창원 진해구","48129"],["김해시","48250"],["양산시","48330"]],
+  "제주": [["제주시","50110"],["서귀포시","50130"]]
+};
+
+// 개편 전 코드 → 새 코드 (저장된 지역 복원용)
+const LEGACY_CODES = {
+  "28110":"28125", "28140":"28125", "28260":"28275", "41590":"41597",
+  "29110":"12210", "29140":"12240", "29155":"12270", "29170":"12300", "29200":"12330",
+  "46110":"12110", "46130":"12130", "46150":"12150"
+};
+
+const PYEONG = 3.3058;          // 1평 = 3.3058㎡
+const DEMO = window.HOUSEFLOW_DEMO === true || new URLSearchParams(location.search).has('demo');
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const state = { sido:'서울', lawd:'11440', sggName:'마포구', items:[], months:3, dong:null, q:'', aptLimit:30, apt:null, group:0, loading:false };
+
+/* ====== 숫자 표기 ====== */
+function won(man){ // 만원 → "12억 3,000" / "8,500만"
+  if (!man && man !== 0) return '-';
+  const eok = Math.floor(man / 10000), rest = man % 10000;
+  if (eok === 0) return `${rest.toLocaleString()}만`;
+  return rest ? `${eok}억 ${rest.toLocaleString()}` : `${eok}억`;
+}
+const comma = (n) => Math.round(n).toLocaleString();
+const pct = (a, b) => (b ? (a - b) / b * 100 : null);
+function moveClass(p){ if (p === null) return 'flat'; if (p > 0.05) return 'up'; if (p < -0.05) return 'down'; return 'flat'; }
+function pctText(p){ if (p === null) return '-'; const s = p > 0.05 ? '+' : ''; return `${s}${p.toFixed(1)}%`; }
+const ppp = (t) => t.price / (t.area / PYEONG); // 전용 3.3㎡(1평)당 만원
+
+/* ====== 날짜 ====== */
+function today0(){ const d = new Date(); d.setHours(0,0,0,0); return d; }
+function daysAgo(dateStr){ const [y,m,d] = dateStr.split('-').map(Number); return Math.floor((today0() - new Date(y, m-1, d)) / 864e5); }
+function shortDate(s){ const [y,m,d] = s.split('-'); return `${y.slice(2)}.${m}.${d}`; }
+
+function stats(list){
+  const valid = list.filter((t) => !t.canceled && t.area > 0);
+  if (!valid.length) return { n:0, avg:null };
+  return { n: valid.length, avg: valid.reduce((s,t) => s + ppp(t), 0) / valid.length };
+}
+function inWeeks(list, from, to){ return list.filter((t) => { const w = Math.floor(daysAgo(t.date) / 7); return w >= from && w <= to; }); }
+
+/* ====== 면적 묶기: 가장 작은 면적 기준 1평(3.3058㎡) 이내는 같은 평형 ====== */
+function groupByArea(trades){
+  const areas = [...new Set(trades.map((t) => t.area))].sort((a,b) => a - b);
+  const groups = []; let cur = null;
+  for (const a of areas){
+    if (!cur || a - cur.min > PYEONG){ cur = { min:a, max:a, areas:[a] }; groups.push(cur); }
+    else { cur.max = a; cur.areas.push(a); }
+  }
+  for (const g of groups){
+    g.trades = trades.filter((t) => t.area >= g.min && t.area <= g.max).sort((x,y) => y.date.localeCompare(x.date) || y.price - x.price);
+    const avgArea = g.trades.reduce((s,t) => s + t.area, 0) / g.trades.length;
+    g.pyeong = Math.round(avgArea / PYEONG);
+    const lo = Math.floor(g.min), hi = Math.floor(g.max);
+    g.label = lo === hi ? `${lo}㎡` : `${lo}~${hi}㎡`;
+  }
+  return groups;
+}
+
+const aptKey = (t) => t.seq || `${t.name}|${t.dong}`;
+
+/* ====== 데이터 불러오기 ====== */
+async function load(months = 3){
+  state.loading = true; renderLoading();
+  try {
+    let data;
+    if (DEMO) data = demoData(state.lawd, months);
+    else {
+      const res = await fetch(`/api/trades?lawd=${state.lawd}&months=${months}`);
+      data = await res.json().catch(() => ({ error: `서버 응답을 읽을 수 없습니다 (HTTP ${res.status})` }));
+      if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    }
+    state.items = data.items; state.months = months;
+  } catch (e) {
+    state.loading = false; renderError(e.message); return false;
+  }
+  state.loading = false; return true;
+}
+
+/* ====== 화면 그리기 ====== */
+function renderLoading(){ $('#app').innerHTML = `<div class="state"><div class="spinner"></div><b>실거래 자료를 불러오고 있어요</b>${esc(state.sggName)} 최근 ${state.months > 3 ? state.months : 3}개월 거래</div>`; }
+function renderError(msg){
+  $('#app').innerHTML = `<div class="state"><b>거래 자료를 불러오지 못했어요</b>${esc(msg)}<br><button id="retry">다시 불러오기</button></div>`;
+  $('#retry').onclick = () => load(state.months).then((ok) => ok && render());
+}
+
+function render(){
+  const items = state.items;
+  const m0 = stats(inWeeks(items,0,3)), m1 = stats(inWeeks(items,4,7));
+  const w0 = stats(inWeeks(items,0,0)), w1 = stats(inWeeks(items,1,1));
+  const mp = m1.n >= 5 && m0.n >= 5 ? pct(m0.avg, m1.avg) : null;
+  const wp = w1.n >= 3 && w0.n >= 3 ? pct(w0.avg, w1.avg) : null;
+  const moveMsg = mp === null ? '비교할 거래가 아직 부족해요'
+    : Math.abs(mp) <= 0.05 ? '직전 4주와 비슷해요'
+    : `직전 4주보다 ${Math.abs(mp).toFixed(1)}% ${mp > 0 ? '올랐어요' : '내렸어요'}`;
+
+  $('#app').innerHTML = `
+    <section class="region">
+      <h1><b>${esc(state.sggName)}</b>${esc(state.sido)}</h1>
+      <div class="figure"><span class="num">${m0.avg ? comma(m0.avg) : '-'}</span><span class="unit">만원</span></div>
+      <p class="basis">최근 4주 아파트 매매, 전용 1평(3.3㎡)당 평균가, 총 ${m0.n}건</p>
+      <p class="move ${moveClass(mp)}">${moveMsg}</p>
+      <div class="weekline">
+        <span class="k">최근 1주</span><span class="v">${w0.n}건, 평당 ${w0.avg ? comma(w0.avg) + '만' : '-'}</span><span class="d ${moveClass(wp)}">${pctText(wp)}</span>
+        <span class="k">직전 1주</span><span class="v">${w1.n}건, 평당 ${w1.avg ? comma(w1.avg) + '만' : '-'}</span><span class="d"></span>
+      </div>
+      <div class="bars">${weekBars(items)}</div>
+      <p class="note">계약 후 30일 안에 신고하는 자료라 최근 1~2주 거래는 앞으로 더 늘어날 수 있어요. 해제된 거래는 계산에서 뺐어요.</p>
+    </section>
+    <section class="sec" id="dongSec"></section>
+    <section class="sec" id="aptSec"></section>
+    <p class="foot">자료: 국토교통부 아파트 매매 실거래가 (공공데이터포털). 호가가 아닌 신고된 실거래 기준입니다.</p>`;
+  renderDongs(); renderApts();
+}
+
+function weekBars(items){
+  const counts = []; for (let w = 7; w >= 0; w--) counts.push(inWeeks(items, w, w).filter((t) => !t.canceled).length);
+  const max = Math.max(1, ...counts), W = 320, H = 96, bw = 26, gap = (W - bw * 8) / 7;
+  const bars = counts.map((c, i) => {
+    const h = Math.max(2, (c / max) * 60), x = i * (bw + gap), y = 74 - h;
+    const fill = i === 7 ? 'var(--brand)' : 'var(--line)';
+    return `<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="4" fill="${fill}"/><text x="${x + bw/2}" y="${y - 5}" text-anchor="middle">${c}</text>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="최근 8주 주별 거래 건수">${bars}
+    <text x="0" y="${H - 4}">8주 전</text><text x="${W}" y="${H - 4}" text-anchor="end">이번 주</text></svg>`;
+}
+
+function renderDongs(){
+  const recent = inWeeks(state.items, 0, 7);
+  const names = [...new Set(recent.map((t) => t.dong))];
+  const rows = names.map((n) => {
+    const list = recent.filter((t) => t.dong === n);
+    const a = stats(inWeeks(list,0,3)), b = stats(inWeeks(list,4,7));
+    return { n, a, p: a.n >= 3 && b.n >= 3 ? pct(a.avg, b.avg) : null };
+  }).filter((r) => r.a.n > 0).sort((x,y) => y.a.n - x.a.n);
+  $('#dongSec').innerHTML = `
+    <div class="sec-h"><h2>동네별 흐름</h2><span>최근 4주, 직전 4주 대비</span></div>
+    <div class="list">${rows.length ? rows.map((r) => `
+      <button class="row dong-row" data-dong="${esc(r.n)}" aria-pressed="${state.dong === r.n}">
+        <span class="n">${esc(r.n)}</span><span class="c">${r.a.n}건</span>
+        <span class="p">평당 ${comma(r.a.avg)}만</span><span class="dd ${moveClass(r.p)}">${pctText(r.p)}</span>
+      </button>`).join('') : `<div class="empty">최근 4주 동안 신고된 거래가 없어요.</div>`}
+    </div>`;
+  $('#dongSec').querySelectorAll('[data-dong]').forEach((b) => b.onclick = () => {
+    state.dong = state.dong === b.dataset.dong ? null : b.dataset.dong; state.aptLimit = 30;
+    renderDongs(); renderApts();
+    if (state.dong) $('#aptSec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function aptList(){
+  const map = new Map();
+  for (const t of state.items){
+    const k = aptKey(t);
+    if (!map.has(k)) map.set(k, { key:k, name:t.name, dong:t.dong, jibun:t.jibun, built:t.built, trades:[] });
+    map.get(k).trades.push(t);
+  }
+  let list = [...map.values()];
+  if (state.dong) list = list.filter((a) => a.dong === state.dong);
+  if (state.q) list = list.filter((a) => a.name.includes(state.q));
+  for (const a of list){
+    const ok = a.trades.filter((t) => !t.canceled).sort((x,y) => y.date.localeCompare(x.date));
+    a.latest = ok[0]; a.count = ok.length;
+  }
+  return list.filter((a) => a.latest).sort((x,y) => y.count - x.count || y.latest.date.localeCompare(x.latest.date));
+}
+
+function renderApts(){
+  const list = aptList();
+  const shown = list.slice(0, state.aptLimit);
+  $('#aptSec').innerHTML = `
+    <div class="sec-h"><h2>아파트</h2><span>최근 ${state.months}개월 거래 많은 순</span></div>
+    <input class="search" id="q" type="search" placeholder="단지 이름으로 찾기" value="${esc(state.q)}" autocomplete="off">
+    ${state.dong ? `<div class="filter">${esc(state.dong)} 단지만 보는 중 <button id="clearDong">전체 보기</button></div>` : ''}
+    <div class="list">${shown.length ? shown.map((a) => `
+      <button class="row apt-row" data-apt="${esc(a.key)}">
+        <span><span class="n">${esc(a.name)}</span><span class="s" style="display:block">${esc(a.dong)}${a.built ? `, ${a.built}년 준공` : ''}, ${a.count}건</span></span>
+        <span class="r"><span class="pr" style="display:block">${won(a.latest.price)}</span><span class="s">${shortDate(a.latest.date)}, ${Math.floor(a.latest.area)}㎡</span></span>
+      </button>`).join('') : `<div class="empty">${state.q ? `'${esc(state.q)}'이 들어간 단지가 없어요. 다른 이름으로 찾아보세요.` : '거래된 단지가 없어요.'}</div>`}
+    </div>
+    ${list.length > shown.length ? `<button class="more" id="more">${list.length - shown.length}개 단지 더 보기</button>` : ''}`;
+  const q = $('#q');
+  q.oninput = () => { state.q = q.value.trim(); state.aptLimit = 30; const pos = q.selectionStart; renderApts(); const nq = $('#q'); nq.focus(); nq.setSelectionRange(pos, pos); };
+  if ($('#clearDong')) $('#clearDong').onclick = () => { state.dong = null; renderDongs(); renderApts(); };
+  if ($('#more')) $('#more').onclick = () => { state.aptLimit += 30; renderApts(); };
+  $('#aptSec').querySelectorAll('[data-apt]').forEach((b) => b.onclick = () => openApt(b.dataset.apt));
+}
+
+/* ====== 단지 상세 ====== */
+function openApt(key){
+  state.apt = key; state.group = null;
+  $('#sheet').hidden = false; document.body.style.overflow = 'hidden';
+  if (!history.state || !history.state.apt) history.pushState({ apt: key }, '');
+  renderApt(); $('#sheet').scrollTop = 0;
+}
+function closeApt(){ $('#sheet').hidden = true; document.body.style.overflow = ''; state.apt = null; }
+$('#closeSheet').onclick = () => { if (history.state && history.state.apt) history.back(); else closeApt(); };
+window.addEventListener('popstate', () => { if (!$('#sheet').hidden) closeApt(); });
+
+function renderApt(){
+  const trades = state.items.filter((t) => aptKey(t) === state.apt);
+  if (!trades.length){ closeApt(); return; }
+  const a = trades[0];
+  const groups = groupByArea(trades);
+  if (state.group === null || !groups[state.group]){
+    // 거래가 가장 많은 평형을 먼저 보여줌
+    state.group = groups.reduce((bi, g, i, arr) => g.trades.length > arr[bi].trades.length ? i : bi, 0);
+  }
+  const g = groups[state.group];
+  const ok = g.trades.filter((t) => !t.canceled);
+  const latest = ok[0];
+  const top = ok.reduce((m, t) => (!m || t.price > m.price ? t : m), null);
+  const avg = ok.length ? ok.reduce((s,t) => s + t.price, 0) / ok.length : null;
+  const merged = g.areas.length > 1;
+
+  $('#sheetBody').innerHTML = `
+    <div class="apt-h"><h2 id="aptTitle">${esc(a.name)}</h2>
+      <p>${esc(a.dong)} ${esc(a.jibun)}${a.built ? `, ${a.built}년 준공` : ''}</p></div>
+    <div class="groups" role="group" aria-label="평형 선택">${groups.map((x, i) => `
+      <button class="chip" data-g="${i}" aria-pressed="${i === state.group}">
+        <b>${x.label}</b><span>전용 ${x.pyeong}평, ${x.trades.filter((t) => !t.canceled).length}건</span>
+      </button>`).join('')}</div>
+    ${merged ? `<p class="merge">전용 ${g.areas.map((v) => v.toFixed(2)).join(', ')}㎡는 1평 이내 차이라 같은 평형으로 묶었어요.</p>` : ''}
+    <div class="stats">
+      <div class="stat"><div class="k">최근 거래</div><div class="v">${latest ? won(latest.price) : '-'}</div><div class="s">${latest ? `${shortDate(latest.date)}, ${latest.floor}층` : ''}</div></div>
+      <div class="stat"><div class="k">최고가 (최근 ${state.months}개월)</div><div class="v">${top ? won(top.price) : '-'}</div><div class="s">${top ? `${shortDate(top.date)}, ${top.floor}층` : ''}</div></div>
+      <div class="stat"><div class="k">평균</div><div class="v">${avg ? won(Math.round(avg / 10) * 10) : '-'}</div><div class="s">${ok.length}건 기준</div></div>
+      <div class="stat"><div class="k">평당가</div><div class="v">${ok.length ? comma(ok.reduce((s,t) => s + ppp(t), 0) / ok.length) + '만' : '-'}</div><div class="s">전용 1평 기준</div></div>
+    </div>
+    ${ok.length >= 2 ? `<div class="chart">${scatter(ok)}</div>` : ''}
+    <div class="sec-h" style="margin-top:26px"><h2>거래 내역</h2><span>${g.trades.length}건</span></div>
+    <div class="list">${g.trades.map((t) => `
+      <div class="row trade${t.canceled ? ' cancel' : ''}">
+        <span class="dt">${shortDate(t.date)}</span>
+        <span class="fl">${t.floor}층<small>${t.area.toFixed(2)}㎡</small>${t.canceled ? '<span class="tag">해제</span>' : ''}${t.direct ? '<span class="tag">직거래</span>' : ''}</span>
+        <span class="pr">${won(t.price)}</span>
+      </div>`).join('')}</div>
+    ${state.months < 12 ? `<button class="more" id="year">최근 1년 거래 불러오기</button>` : ''}
+    <p class="foot">면적은 전용면적 기준이며, 가장 작은 면적에서 1평(3.3058㎡) 이내인 거래를 같은 평형으로 묶었어요.</p>`;
+
+  $('#sheetBody').querySelectorAll('[data-g]').forEach((b) => b.onclick = () => { state.group = Number(b.dataset.g); renderApt(); });
+  if ($('#year')) $('#year').onclick = async () => {
+    const btn = $('#year'); btn.disabled = true; btn.textContent = '1년 치 불러오는 중…';
+    const keep = state.apt, keepGroup = g.label;
+    const ok2 = await load(12);
+    if (ok2){ render(); state.apt = keep; const ng = groupByArea(state.items.filter((t) => aptKey(t) === keep)); const idx = ng.findIndex((x) => x.label === keepGroup); state.group = idx >= 0 ? idx : null; renderApt(); }
+    else { closeApt(); }
+  };
+}
+
+function scatter(list){
+  const W = 330, H = 150, L = 44, R = 8, T = 10, B = 22;
+  const xs = list.map((t) => -daysAgo(t.date)), ys = list.map((t) => t.price);
+  let x0 = Math.min(...xs), x1 = Math.max(...xs); if (x0 === x1){ x0 -= 1; x1 += 1; }
+  let y0 = Math.min(...ys), y1 = Math.max(...ys); const pad = Math.max((y1 - y0) * 0.15, y1 * 0.03); y0 -= pad; y1 += pad;
+  const X = (v) => L + (v - x0) / (x1 - x0) * (W - L - R), Y = (v) => T + (1 - (v - y0) / (y1 - y0)) * (H - T - B);
+  const ticks = [y0 + (y1 - y0) * 0.15, (y0 + y1) / 2, y1 - (y1 - y0) * 0.15];
+  const grid = ticks.map((v) => `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${(v / 10000).toFixed(1)}억</text>`).join('');
+  const sorted = list.slice().sort((a, b) => a.date.localeCompare(b.date));
+  const dots = list.map((t) => `<circle cx="${X(-daysAgo(t.date))}" cy="${Y(t.price)}" r="4" fill="var(--brand)" fill-opacity=".75"/>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="거래일별 가격">${grid}${dots}
+    <text x="${L}" y="${H - 5}">${shortDate(sorted[0].date)}</text><text x="${W - R}" y="${H - 5}" text-anchor="end">${shortDate(sorted[sorted.length - 1].date)}</text></svg>`;
+}
+
+/* ====== 지역 선택 ====== */
+function fillSido(){
+  $('#sido').innerHTML = Object.keys(REGIONS).map((s) => `<option ${s === state.sido ? 'selected' : ''}>${s}</option>`).join('');
+  fillSgg();
+}
+function fillSgg(){
+  $('#sgg').innerHTML = REGIONS[state.sido].map(([n, c]) => `<option value="${c}" ${c === state.lawd ? 'selected' : ''}>${n}</option>`).join('');
+}
+function currentName(){ const f = REGIONS[state.sido].find(([, c]) => c === state.lawd); return f ? f[0] : ''; }
+async function changeRegion(){
+  state.sggName = currentName(); state.dong = null; state.q = ''; state.aptLimit = 30;
+  try { localStorage.setItem('houseflow-region', JSON.stringify({ sido: state.sido, lawd: state.lawd })); } catch (_) {}
+  window.scrollTo(0, 0);
+  if (await load(3)) render();
+}
+$('#sido').onchange = (e) => { state.sido = e.target.value; state.lawd = REGIONS[state.sido][0][1]; fillSgg(); changeRegion(); };
+$('#sgg').onchange = (e) => { state.lawd = e.target.value; changeRegion(); };
+
+/* ====== 데모 데이터 (?demo 또는 HOUSEFLOW_DEMO=true 일 때만) ====== */
+function demoData(lawd, months){
+  let s = Number(lawd) || 1;
+  const rnd = () => { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; };
+  const dongs = ['중앙동','한빛동','새솔동','푸른동','가람동'];
+  const areaSets = [[59.87, 59.96], [84.12, 84.59, 84.97], [112.4, 114.8]];
+  const items = [];
+  for (let i = 0; i < 24; i++){
+    const dong = dongs[i % dongs.length];
+    const name = `${dong.replace('동','')}${['마을','파크','힐스','센트럴'][i % 4]} ${1 + (i % 3)}단지`;
+    const base = 2600 + rnd() * 4200, trend = (rnd() - 0.4) * 0.12, built = 1995 + Math.floor(rnd() * 28);
+    const n = 3 + Math.floor(rnd() * 14 * months / 3);
+    for (let k = 0; k < n; k++){
+      const ago = Math.floor(rnd() * months * 30);
+      const set = areaSets[Math.floor(rnd() * (rnd() < 0.2 ? 3 : 2))];
+      const area = set[Math.floor(rnd() * set.length)];
+      const d = new Date(); d.setDate(d.getDate() - ago);
+      const price = Math.round(base * (area / PYEONG) * (1 + trend * (1 - ago / (months * 30))) * (0.94 + rnd() * 0.12) / 100) * 100;
+      items.push({ name, dong, jibun: String(100 + i * 7), seq: `demo-${lawd}-${i}`, area, price,
+        date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+        floor: 1 + Math.floor(rnd() * 25), built, canceled: rnd() < 0.04, direct: rnd() < 0.08 });
+    }
+  }
+  return { items };
+}
+
+/* ====== 시작 ====== */
+(function init(){
+  try {
+    const saved = JSON.parse(localStorage.getItem('houseflow-region') || 'null');
+    if (saved){
+      // 행정구역 개편 전 코드로 저장된 사용자는 새 코드로 옮겨줌
+      const lawd = LEGACY_CODES[saved.lawd] || saved.lawd;
+      const sido = Object.keys(REGIONS).find((k) => REGIONS[k].some(([, c]) => c === lawd));
+      if (sido){ state.sido = sido; state.lawd = lawd; }
+    }
+  } catch (_) {}
+  if (DEMO) $('#demoBar').hidden = false;
+  fillSido(); changeRegion();
+})();
+</script>
+</body>
+</html>
